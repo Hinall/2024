@@ -1,9 +1,7 @@
 $(document).ready(function () {
-  
   display();
- 
 
-  function display(){
+  function display() {
     $.ajax({
       url: "http://localhost:8080/prop",
       type: "GET",
@@ -11,14 +9,14 @@ $(document).ready(function () {
       success: function (data) {
         data.sort((a, b) => a.survey_id - b.survey_id);
         loadTable(data);
-        },
+      },
       error: function (error) {
         console.log(error);
       },
     });
-   
   }
-  function loadTable(dataReceived){
+
+  function loadTable(dataReceived) {
     let tableBody = "";
     dataReceived.forEach((item) => {
       tableBody += `<tr>
@@ -28,27 +26,25 @@ $(document).ready(function () {
                         <td>${item.propert_address}</td>
                         <td>${item.latitude}</td>
                         <td>${item.longitude}</td>
-                        <td><button type="button"  class="btn btn-light viewBtn" data-lat="${item.latitude}" data-lon="${item.longitude}"><i class="fas fa-map-marked-alt"></i></button></td>
+                        
+                        <td><button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${item.latitude}" data-lon="${item.longitude}"><i class="fas fa-map-marked-alt"></i></button></td>
                         <td>
-                      
                             <button class="btn btn-light dropdown-toggle dropdownBtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-dark dropdown3">
-                 <!-- dynamic list -->
-                 <li><button class="dropdown-item btn btn-light edit" data-id="${item.survey_id}" >edit</button></li>
-                 <li><button class="dropdown-item btn btn-light delete" data-id="${item.survey_id}" >delete</button></li>
-
-                </ul>
-                        
-                    </td>
-
+                                <!-- dynamic list -->
+                                <li><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button></li>
+                                <li><button class="dropdown-item btn btn-light delete" data-id="${item.survey_id}">delete</button></li>
+                            </ul>
+                        </td>
                       </tr>`;
     });
 
     // Append the table body to the existing table
     $("tbody").html(tableBody);
   }
+
   // Initialize the map
   var map = new ol.Map({
     target: "map", // The HTML element ID of the map container
@@ -82,7 +78,7 @@ $(document).ready(function () {
   }
 
   // Example: Add a marker at coordinates (longitude, latitude)
-  $(".viewBtn").on("click", function () {
+  $(document).on('click', '.viewBtn', function () {
     let lat = $(this).data("lat");
     let lon = $(this).data("lon");
 
@@ -91,6 +87,7 @@ $(document).ready(function () {
     $("#close").on("click", function () {
       $("#map").css("display", "none");
     });
+    $('.modal-backdrop').hide();
   });
 
   // Search functionality
@@ -116,19 +113,17 @@ $(document).ready(function () {
       });
     },
   });
-  // Handle the change event of the first dropdown (ward_id)
-$('#dropdown1').on('click', 'a', function () {
-  // Get the text of the selected option
-  var selectedOption = $(this).text();
-  
-  // Filter the data based on the ward ID
-  $("#myTable tr").filter(function () {
-      $(this).toggle($(this).find("td:nth-child(2)").text().includes(selectedOption));
-  });
-});
 
-   // Fetch property type for dropdown
-   $.ajax({
+  // Handle the change event of the first dropdown (ward_id)
+  $(document).on('click', '#dropdown1 a', function () {
+    var selectedOption = $(this).text();
+    $("#myTable tr").filter(function () {
+      $(this).toggle($(this).find("td:nth-child(2)").text().includes(selectedOption));
+    });
+  });
+
+  // Fetch property type for dropdown
+  $.ajax({
     url: "http://localhost:8080/proptypeoption",
     type: "GET",
     async: false,
@@ -142,43 +137,123 @@ $('#dropdown1').on('click', 'a', function () {
       });
     },
   });
- // Handle the change event of the second dropdown (property_type)
-$('#dropdown2').on('click', 'a', function () {
-  // Get the text of the selected option
-  var selected = $(this).text();
-  
-  // Filter the data based on the property type
-  $("#myTable tr").filter(function () {
+
+  // Handle the change event of the second dropdown (property_type)
+  $(document).on('click', '#dropdown2 a', function () {
+    var selected = $(this).text();
+    $("#myTable tr").filter(function () {
       $(this).toggle($(this).find("td:nth-child(3)").text().includes(selected));
+    });
   });
-  
-});
+
   // Handle the click event of the three-dot menu
-  $(".dropdownBtn").on("click", function () {
-    // Get the associated dropdown-menu
+  $(document).on('click', '.dropdownBtn', function () {
     var dropdownMenu = $(this).next(".dropdown3");
-    
-    // Toggle the "show" class on the dropdown-menu
     dropdownMenu.toggleClass("show");
   });
-  $(".edit").on("click", function () {
-    let surveyId = $(this).data("id");
+
+  // Edit button using event delegation
+  let surveyId = "";
+  $(document).on('click', '.edit', function () {
+    surveyId = $(this).data("id");
     $.ajax({
-      url: "http://localhost:8080/propUpdate/" + surveyId, 
-      type: "PUT",
+      url: "http://localhost:8080/prop/" + surveyId,
+      type: "GET",
+      contentType: "application/json",
       async: false,
       success: function (data) {
-        alert("update");
-      }, // Add the missing closing parenthesis here
+        $("#wardId").val(data[0].ward_id);
+        $("#propType").val(data[0].property_type);
+        $("#address").val(data[0].propert_address);
+        $("#lat").val(data[0].latitude);
+        $("#long").val(data[0].longitude);
+      },
       error: function (error) {
         console.log(error);
       },
     });
   });
-  $(".delete").on("click", function () {
+
+  // Save changes
+  $("#saveBtn").click(function (event) {
+    event.preventDefault();
+
+    let newData = {
+      ward_id: $("#wardId").val(),
+      property_type: $("#propType").val(),
+      property_address: $("#address").val(),
+      latitude: $("#lat").val(),
+      longitude: $("#long").val(),
+    };
+
+    $.ajax({
+      url: "http://localhost:8080/propUpdate/" + surveyId,
+      type: "PUT",
+      async: false,
+      data: JSON.stringify(newData),
+      contentType: "application/json",
+      success: function (data) {
+        $("#wardId").val('');
+        $("#propType").val('');
+        $("#address").val('');
+        $("#lat").val('');
+        $("#long").val('');
+        alert("update");
+        $("#editModal").modal("hide");
+        alert("done");
+        surveyId = "";
+        $('.modal-backdrop').hide();
+      },
+      error: function (error) {
+        $('.modal-backdrop').hide();
+        console.log(error);
+      },
+    });
+  });
+  //add new data
+  $(document).on('click', '#saveBtn_add', function () {
+ 
+  
+      let Data = {
+        survey_id: $("#surveyId_add").val(),
+        ward_id: $("#wardId_add").val(),
+        property_type: $("#propType_add").val(),
+        property_address: $("#address_add").val(),
+        latitude: $("#lat_add").val(),
+        longitude: $("#long_add").val(),
+      }
+      $.ajax({
+        url: "http://localhost:8080/prop" ,
+        type: "POST",
+        contentType: "application/json",
+        async: false,
+        data: JSON.stringify(Data),
+        success: function () {
+          $("#surveyId").val('');
+          $("#wardId").val('');
+          $("#propType").val('');
+          $("#address").val('');
+          $("#lat").val('');
+          $("#long").val('');
+         
+          $("#addModal").modal("hide");
+          display(data);
+          alert("added");
+      
+        },
+        error: function (error) {
+          console.log(error);
+        },
+      });
+  
+
+  });
+
+  // Delete
+  $(document).on('click', '.delete', function () {
     let surveyId = $(this).data("id");
     $.ajax({
-      url: "http://localhost:8080/prop/" + surveyId, 
+      url: "http://localhost:8080/prop/" + surveyId,
       type: "DELETE",
       async: false,
       success: function (data) {
