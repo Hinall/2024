@@ -1,5 +1,6 @@
 $(document).ready(function () {
   display();
+  var vectorLayer
 
   function display() {
     $.ajax({
@@ -35,7 +36,7 @@ $(document).ready(function () {
                             <ul class="dropdown-menu dropdown-menu-dark dropdown3">
                                 <!-- dynamic list -->
                                 <li><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button></li>
-                                <li><button class="dropdown-item btn btn-light delete" data-id="${item.survey_id}">delete</button></li>
+                                <li><button class="dropdown-item btn btn-light delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="${item.survey_id}">delete</button></li>
                             </ul>
                         </td>
                       </tr>`;
@@ -45,40 +46,51 @@ $(document).ready(function () {
     $("tbody").html(tableBody);
   }
 
-  // Initialize the map
-  var map = new ol.Map({
-    target: "map", // The HTML element ID of the map container
-    layers: [
-      new ol.layer.Tile({
-        // Add a base tile layer (you can customize this)
-        source: new ol.source.OSM(),
-      }),
-    ],
-    view: new ol.View({
-      // Set initial map view (center and zoom level)
-      center: ol.proj.fromLonLat([0, 0]), // Center of the map, in LonLat format
-      zoom: 2, // Initial zoom level
+ // Initialize the map
+var map = new ol.Map({
+  target: "map", // The HTML element ID of the map container
+  layers: [
+    new ol.layer.Tile({
+      // Add a base tile layer (you can customize this)
+      source: new ol.source.OSM(),
     }),
-  });
+  ],
+  view: new ol.View({
+    // Set initial map view (center and zoom level)
+    center: ol.proj.fromLonLat([0, 0]), // Center of the map, in LonLat format
+    zoom: 2, // Initial zoom level
+  }),
+  
+});
+var vectorLayer = new ol.layer.Vector({
+  source: new ol.source.Vector(),
+});
+map.addLayer(vectorLayer);
 
-  // Function to add a marker to the map at a specific location
-  function addMarker(lon, lat) {
-    var point = new ol.geom.Point(ol.proj.fromLonLat([lon, lat]));
-    var marker = new ol.Feature({
-      geometry: point,
-    });
-
-    var vectorLayer = new ol.layer.Vector({
-      source: new ol.source.Vector({
-        features: [marker],
-      }),
-    });
-
-    map.addLayer(vectorLayer);
-  }
+function addMarker(lon, lat) {
+  var point = new ol.geom.Point(ol.proj.fromLonLat([lon, lat]));
+  var marker = new ol.Feature({
+    geometry: point,});
+  
+marker.setStyle(new ol.style.Style({
+  image: new ol.style.Circle({
+    radius: 8,
+    fill: new ol.style.Fill({
+      color: 'red',
+    }),
+    stroke: new ol.style.Stroke({
+      color: 'white',
+      width: 2,
+    }),
+  }),
+}));
+  vectorLayer.getSource().clear(); // Clear existing markers
+  vectorLayer.getSource().addFeature(marker); // Add the new marker
+}
 
   // Example: Add a marker at coordinates (longitude, latitude)
   $(document).on('click', '.viewBtn', function () {
+    $('.modal-backdrop').hide();
     let lat = $(this).data("lat");
     let lon = $(this).data("lon");
 
@@ -86,8 +98,10 @@ $(document).ready(function () {
     $("#map").css("display", "block");
     $("#close").on("click", function () {
       $("#map").css("display", "none");
+      map.removeLayer(vectorLayer);
     });
-    $('.modal-backdrop').hide();
+   
+   
   });
 
   // Search functionality
@@ -200,9 +214,12 @@ $(document).ready(function () {
         $("#long").val('');
         alert("update");
         $("#editModal").modal("hide");
-        alert("done");
-        surveyId = "";
         $('.modal-backdrop').hide();
+        display();
+
+       
+        surveyId = "";
+       
       },
       error: function (error) {
         $('.modal-backdrop').hide();
@@ -229,6 +246,8 @@ $(document).ready(function () {
         async: false,
         data: JSON.stringify(Data),
         success: function () {
+          $("#addModal").modal("hide");
+          $('.modal-backdrop').hide();
           $("#surveyId").val('');
           $("#wardId").val('');
           $("#propType").val('');
@@ -236,8 +255,8 @@ $(document).ready(function () {
           $("#lat").val('');
           $("#long").val('');
          
-          $("#addModal").modal("hide");
-          display(data);
+         ;
+          display();
           alert("added");
       
         },
@@ -249,16 +268,24 @@ $(document).ready(function () {
 
   });
 
-  // Delete
+  //delete button
+  let delete_Id;
   $(document).on('click', '.delete', function () {
-    let surveyId = $(this).data("id");
+     delete_Id = $(this).data("id");
+  });
+  // Delete yes button
+  $(document).on('click', '#deleteBtn_add', function () {
+   
     $.ajax({
-      url: "http://localhost:8080/prop/" + surveyId,
+      url: "http://localhost:8080/prop/" + delete_Id,
       type: "DELETE",
       async: false,
       success: function (data) {
-        display(data);
+        $("#deleteModal").modal("hide");
+        $('.modal-backdrop').hide();
+        display();
         alert("deleted");
+        delete_Id='';
       },
       error: function (error) {
         console.log(error);

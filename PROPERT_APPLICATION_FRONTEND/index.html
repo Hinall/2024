@@ -52,7 +52,7 @@
                 <li class="nav-item">
                   <a class="nav-link" href="#">Link</a>
                 </li>
-                <button id="addBtn" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal" >add new data</button>
+                <button id="addBtn" type="button" class="btn btn-" data-bs-toggle="modal" data-bs-target="#addModal" >add new data</button>
               </ul>
              
             </div>
@@ -81,7 +81,7 @@
         
               <!-- Modal footer -->
               <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
               </div>
         
             </div>
@@ -123,8 +123,8 @@
                        
                   </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="saveBtn">Save changes</button>
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-dark" id="saveBtn">Save changes</button>
                 </div>
             </div>
         </div>
@@ -165,13 +165,32 @@
                      
                 </div>
               <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  <button type="button" class="btn btn-primary" id="saveBtn_add">save</button>
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-light" id="saveBtn_add">save</button>
               </div>
           </div>
       </div>
   </div>
-  
+   <!-- delete Modal -->
+   <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+              
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">  
+              
+              Are you sure you want to delete the record?
+              </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">no</button>
+                <button type="button" class="btn btn-light" id="deleteBtn_add">yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <center> 
     <table id="myTable" class="table">
         <thead>
