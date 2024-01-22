@@ -18,32 +18,54 @@ $(document).ready(function () {
   }
 
   function loadTable(dataReceived) {
-    let tableBody = "";
-    dataReceived.forEach((item) => {
-      tableBody += `<tr>
-                        <td>${item.survey_id}</td>
-                        <td>${item.ward_id}</td>
-                        <td>${item.property_type}</td>
-                        <td>${item.propert_address}</td>
-                        <td>${item.latitude}</td>
-                        <td>${item.longitude}</td>
+    let mytable= $('#myTable').DataTable();
+    mytable.DataTable({
+      data: dataReceived,
+      columns: [
+          { data: 'survey_id' },
+          { data: 'ward_id' },
+          { data: 'property_type' },
+          { data: 'propert_address' },
+          { data: 'latitude' },
+          { data: 'longitude' },
+          {
+                // Adding a column for the button
+                data: null,
+                render: function (data, type, row) {
+                    return '<button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="' + row.latitude + '" data-lon="' + row.longitude + '"><i class="fas fa-map-marked-alt"></i></button>';
+                }
+            }
+      ],
+      "pageLength": 10,
+     });
+     mytable.add(['<button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${item.latitude}" data-lon="${item.longitude}"><i class="fas fa-map-marked-alt"></i></button></td>'
+              ]).draw();
+    // let tableBody = "";
+    // dataReceived.forEach((item) => {
+    //   tableBody += `<tr>
+    //                     <td>${item.survey_id}</td>
+    //                     <td>${item.ward_id}</td>
+    //                     <td>${item.property_type}</td>
+    //                     <td>${item.propert_address}</td>
+    //                     <td>${item.latitude}</td>
+    //                     <td>${item.longitude}</td>
                         
-                        <td><button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${item.latitude}" data-lon="${item.longitude}"><i class="fas fa-map-marked-alt"></i></button></td>
-                        <td>
-                            <button class="btn btn-light dropdown-toggle dropdownBtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-dark dropdown3">
-                                <!-- dynamic list -->
-                                <li><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button></li>
-                                <li><button class="dropdown-item btn btn-light delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="${item.survey_id}">delete</button></li>
-                            </ul>
-                        </td>
-                      </tr>`;
-    });
+    //                     <td><button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${item.latitude}" data-lon="${item.longitude}"><i class="fas fa-map-marked-alt"></i></button></td>
+    //                     <td>
+    //                         <button class="btn btn-light dropdown-toggle dropdownBtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    //                             <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+    //                         </button>
+    //                         <ul class="dropdown-menu dropdown-menu-dark dropdown3">
+    //                             <!-- dynamic list -->
+    //                             <li><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button></li>
+    //                             <li><button class="dropdown-item btn btn-light delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="${item.survey_id}">delete</button></li>
+    //                         </ul>
+    //                     </td>
+    //                   </tr>`;
+    // });
 
-    // Append the table body to the existing table
-    $("tbody").html(tableBody);
+    // // Append the table body to the existing table
+    // $("tbody").html(tableBody);
   }
 
  // Initialize the map
@@ -105,12 +127,12 @@ marker.setStyle(new ol.style.Style({
   });
 
   // Search functionality
-  $("#myInput").on("keyup", function () {
-    var value = $(this).val().toLowerCase();
-    $("#myTable tr").filter(function () {
-      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-    });
-  });
+  // $("#myInput").on("keyup", function () {
+  //   var value = $(this).val().toLowerCase();
+  //   $("#myTable tr").filter(function () {
+  //     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+  //   });
+  // });
 
   // Fetch data for dropdown
   $.ajax({
