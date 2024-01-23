@@ -18,28 +18,43 @@ $(document).ready(function () {
   }
 
   function loadTable(dataReceived) {
-    let mytable= $('#myTable').DataTable();
-    mytable.DataTable({
-      data: dataReceived,
-      columns: [
-          { data: 'survey_id' },
-          { data: 'ward_id' },
-          { data: 'property_type' },
-          { data: 'propert_address' },
-          { data: 'latitude' },
-          { data: 'longitude' },
-          {
+    let mytable = $('#myTable').DataTable({
+        data: dataReceived,
+        columns: [
+            { data: 'survey_id' },
+            { data: 'ward_id' },
+            { data: 'property_type' },
+            { data: 'propert_address' },
+            { data: 'latitude' },
+            { data: 'longitude' },
+            { data: 'total_floors' },
+            { data: 'property_status' },
+            { data: 'property_image' },
+            {
                 // Adding a column for the button
                 data: null,
                 render: function (data, type, row) {
                     return '<button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="' + row.latitude + '" data-lon="' + row.longitude + '"><i class="fas fa-map-marked-alt"></i></button>';
                 }
+            },
+            {
+              // Adding a column for the button
+              data: null,
+              render: function (data, type, row) {
+                  return '><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button>';
+              }
+          },
+          {
+            // Adding a column for the button
+            data: null,
+            render: function (data, type, row) {
+                return '<li><button class="dropdown-item btn btn-light delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="${item.survey_id}">delete</button>';
             }
-      ],
-      "pageLength": 10,
-     });
-     mytable.add(['<button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${item.latitude}" data-lon="${item.longitude}"><i class="fas fa-map-marked-alt"></i></button></td>'
-              ]).draw();
+        }
+
+        ],
+        "pageLength": 10,
+    });
     // let tableBody = "";
     // dataReceived.forEach((item) => {
     //   tableBody += `<tr>
@@ -80,7 +95,7 @@ var map = new ol.Map({
   view: new ol.View({
     // Set initial map view (center and zoom level)
     center: ol.proj.fromLonLat([0, 0]), // Center of the map, in LonLat format
-    zoom: 2, // Initial zoom level
+    zoom: 10, // Initial zoom level
   }),
   
 });
