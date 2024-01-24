@@ -19,42 +19,52 @@ $(document).ready(function () {
 
   function loadTable(dataReceived) {
     let mytable = $('#myTable').DataTable({
-        data: dataReceived,
-        columns: [
-            { data: 'survey_id' },
-            { data: 'ward_id' },
-            { data: 'property_type' },
-            { data: 'propert_address' },
-            { data: 'latitude' },
-            { data: 'longitude' },
-            { data: 'total_floors' },
-            { data: 'property_status' },
-            { data: 'property_image' },
-            {
-                // Adding a column for the button
-                data: null,
-                render: function (data, type, row) {
-                    return '<button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="' + row.latitude + '" data-lon="' + row.longitude + '"><i class="fas fa-map-marked-alt"></i></button>';
-                }
-            },
-            {
-              // Adding a column for the button
-              data: null,
-              render: function (data, type, row) {
-                  return '><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button>';
-              }
-          },
-          {
-            // Adding a column for the button
-            data: null,
-            render: function (data, type, row) {
-                return '<li><button class="dropdown-item btn btn-light delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="${item.survey_id}">delete</button>';
+      data: dataReceived,
+      columns: [
+        { data: 'survey_id', title: 'Survey Id' },
+        { data: 'ward_id', title: 'Ward Id' },
+        { data: 'property_type', title: 'Property Type' },
+        { data: 'propert_address', title: 'Property Address' },
+        { data: 'latitude', title: 'Latitude', orderable: false },
+        { data: 'longitude', title: 'Longitude', orderable: false },
+        { data: 'total_floors', title: 'Total Floors', orderable: false },
+        { data: 'property_status', title: 'Property Status' },
+        { data: 'property_image', title: 'Images', orderable: false },
+        { data: null, title: 'Map', orderable: false },
+        { data: null, title: '', orderable: false },
+      ],
+      "columnDefs": [
+        { "targets": 4, "className": "text-center", "data": "latitude" },
+        { "targets": 5, "className": "text-center", "data": "longitude" },
+        { "targets": 6, "className": "text-center", "data": "total_floors" },
+        { "targets": 7, "className": "text-center", "data": "property_status" },
+        { "targets": 8, "className": "text-center", "data": "property_image",
+          "render": function (data, type, row, meta) {
+            if(!row.property_image)
+            { return "N/A"}
+            else{
+              return `<button id="imageBtn" type="button" data-bs-toggle="modal" data-bs-target="#imageModal" class="btn btn-light viewBtn">View</button>`;
             }
+           
+          }
+        },
+        { "targets": 9, "className": "text-center", "data": null,
+          "render": function (data, type, row, meta) {
+            return `<button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${row.latitude}" data-lon="${row.longitude}"><i class="fas fa-map-marked-alt"></i></button>`;
+          }
+        },
+        { "targets": 10, "className": "text-center", "data": null,
+          "render": function (data, type, row, meta) {
+            return `<button class="btn btn-light dropdown-toggle dropdownBtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>`;
+          },
+          "orderable": false
         }
-
-        ],
-        "pageLength": 10,
+      ],
+      "pageLength": 5,
     });
+  
+
+
     // let tableBody = "";
     // dataReceived.forEach((item) => {
     //   tableBody += `<tr>
@@ -64,7 +74,7 @@ $(document).ready(function () {
     //                     <td>${item.propert_address}</td>
     //                     <td>${item.latitude}</td>
     //                     <td>${item.longitude}</td>
-                        
+
     //                     <td><button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${item.latitude}" data-lon="${item.longitude}"><i class="fas fa-map-marked-alt"></i></button></td>
     //                     <td>
     //                         <button class="btn btn-light dropdown-toggle dropdownBtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -72,7 +82,7 @@ $(document).ready(function () {
     //                         </button>
     //                         <ul class="dropdown-menu dropdown-menu-dark dropdown3">
     //                             <!-- dynamic list -->
-    //                             <li><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button></li>
+    // <li><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button></li>
     //                             <li><button class="dropdown-item btn btn-light delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="${item.survey_id}">delete</button></li>
     //                         </ul>
     //                     </td>
@@ -83,47 +93,48 @@ $(document).ready(function () {
     // $("tbody").html(tableBody);
   }
 
- // Initialize the map
-var map = new ol.Map({
-  target: "map", // The HTML element ID of the map container
-  layers: [
-    new ol.layer.Tile({
-      // Add a base tile layer (you can customize this)
-      source: new ol.source.OSM(),
+  // Initialize the map
+  var map = new ol.Map({
+    target: "map", // The HTML element ID of the map container
+    layers: [
+      new ol.layer.Tile({
+        // Add a base tile layer (you can customize this)
+        source: new ol.source.OSM(),
+      }),
+    ],
+    view: new ol.View({
+      // Set initial map view (center and zoom level)
+      center: ol.proj.fromLonLat([0, 0]), // Center of the map, in LonLat format
+      zoom: 10, // Initial zoom level
     }),
-  ],
-  view: new ol.View({
-    // Set initial map view (center and zoom level)
-    center: ol.proj.fromLonLat([0, 0]), // Center of the map, in LonLat format
-    zoom: 10, // Initial zoom level
-  }),
-  
-});
-var vectorLayer = new ol.layer.Vector({
-  source: new ol.source.Vector(),
-});
-map.addLayer(vectorLayer);
 
-function addMarker(lon, lat) {
-  var point = new ol.geom.Point(ol.proj.fromLonLat([lon, lat]));
-  var marker = new ol.Feature({
-    geometry: point,});
-  
-marker.setStyle(new ol.style.Style({
-  image: new ol.style.Circle({
-    radius: 8,
-    fill: new ol.style.Fill({
-      color: 'red',
-    }),
-    stroke: new ol.style.Stroke({
-      color: 'white',
-      width: 2,
-    }),
-  }),
-}));
-  vectorLayer.getSource().clear(); // Clear existing markers
-  vectorLayer.getSource().addFeature(marker); // Add the new marker
-}
+  });
+  var vectorLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+  });
+  map.addLayer(vectorLayer);
+
+  function addMarker(lon, lat) {
+    var point = new ol.geom.Point(ol.proj.fromLonLat([lon, lat]));
+    var marker = new ol.Feature({
+      geometry: point,
+    });
+
+    marker.setStyle(new ol.style.Style({
+      image: new ol.style.Circle({
+        radius: 8,
+        fill: new ol.style.Fill({
+          color: 'red',
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'white',
+          width: 2,
+        }),
+      }),
+    }));
+    vectorLayer.getSource().clear(); // Clear existing markers
+    vectorLayer.getSource().addFeature(marker); // Add the new marker
+  }
 
   // Example: Add a marker at coordinates (longitude, latitude)
   $(document).on('click', '.viewBtn', function () {
@@ -137,8 +148,8 @@ marker.setStyle(new ol.style.Style({
       $("#map").css("display", "none");
       map.removeLayer(vectorLayer);
     });
-   
-   
+
+
   });
 
   // Search functionality
@@ -254,9 +265,9 @@ marker.setStyle(new ol.style.Style({
         $('.modal-backdrop').hide();
         display();
 
-       
+
         surveyId = "";
-       
+
       },
       error: function (error) {
         $('.modal-backdrop').hide();
@@ -266,53 +277,53 @@ marker.setStyle(new ol.style.Style({
   });
   //add new data
   $(document).on('click', '#saveBtn_add', function () {
- 
-  
-      let Data = {
-        survey_id: $("#surveyId_add").val(),
-        ward_id: $("#wardId_add").val(),
-        property_type: $("#propType_add").val(),
-        property_address: $("#address_add").val(),
-        latitude: $("#lat_add").val(),
-        longitude: $("#long_add").val(),
-      }
-      $.ajax({
-        url: "http://localhost:8080/prop" ,
-        type: "POST",
-        contentType: "application/json",
-        async: false,
-        data: JSON.stringify(Data),
-        success: function () {
-          $("#addModal").modal("hide");
-          $('.modal-backdrop').hide();
-          $("#surveyId").val('');
-          $("#wardId").val('');
-          $("#propType").val('');
-          $("#address").val('');
-          $("#lat").val('');
-          $("#long").val('');
-         
-         ;
-          display();
-          alert("added");
-      
-        },
-        error: function (error) {
-          console.log(error);
-        },
-      });
-  
+
+
+    let Data = {
+      survey_id: $("#surveyId_add").val(),
+      ward_id: $("#wardId_add").val(),
+      property_type: $("#propType_add").val(),
+      property_address: $("#address_add").val(),
+      latitude: $("#lat_add").val(),
+      longitude: $("#long_add").val(),
+    }
+    $.ajax({
+      url: "http://localhost:8080/prop",
+      type: "POST",
+      contentType: "application/json",
+      async: false,
+      data: JSON.stringify(Data),
+      success: function () {
+        $("#addModal").modal("hide");
+        $('.modal-backdrop').hide();
+        $("#surveyId").val('');
+        $("#wardId").val('');
+        $("#propType").val('');
+        $("#address").val('');
+        $("#lat").val('');
+        $("#long").val('');
+
+        ;
+        display();
+        alert("added");
+
+      },
+      error: function (error) {
+        console.log(error);
+      },
+    });
+
 
   });
 
   //delete button
   let delete_Id;
   $(document).on('click', '.delete', function () {
-     delete_Id = $(this).data("id");
+    delete_Id = $(this).data("id");
   });
   // Delete yes button
   $(document).on('click', '#deleteBtn_add', function () {
-   
+
     $.ajax({
       url: "http://localhost:8080/prop/" + delete_Id,
       type: "DELETE",
@@ -322,7 +333,7 @@ marker.setStyle(new ol.style.Style({
         $('.modal-backdrop').hide();
         display();
         alert("deleted");
-        delete_Id='';
+        delete_Id = '';
       },
       error: function (error) {
         console.log(error);

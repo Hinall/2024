@@ -12,3 +12,11 @@ input {
 small{
     color: red;
 }
+.img-size{
+    /* 	padding: 0;
+        margin: 0; */
+        height: 397px;
+        width: 757px;
+        background-size: cover;
+        overflow: hidden;
+    }
