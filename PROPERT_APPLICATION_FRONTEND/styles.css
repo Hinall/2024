@@ -10,13 +10,9 @@ input {
     box-sizing: border-box;
 }
 small{
-    color: red;
+    color: rgb(141, 40, 94);
 }
-.img-size{
-    /* 	padding: 0;
-        margin: 0; */
-        height: 397px;
-        width: 757px;
-        background-size: cover;
-        overflow: hidden;
-    }
+.img-size {
+    width: 100%;  /* Adjust as needed */
+    height: auto; /* Maintain aspect ratio */
+  }

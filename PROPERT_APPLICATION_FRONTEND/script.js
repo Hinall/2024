@@ -19,7 +19,10 @@ $(document).ready(function () {
 
   function loadTable(dataReceived) {
     let mytable = $('#myTable').DataTable({
-      data: dataReceived,
+      
+      data: dataReceived,      
+      dom: '<"top" Bf>rt<"bottom" lp><"clear">',
+      buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
       columns: [
         { data: 'survey_id', title: 'Survey Id' },
         { data: 'ward_id', title: 'Ward Id' },
@@ -38,22 +41,24 @@ $(document).ready(function () {
         { "targets": 5, "className": "text-center", "data": "longitude" },
         { "targets": 6, "className": "text-center", "data": "total_floors" },
         { "targets": 7, "className": "text-center", "data": "property_status" },
-        { "targets": 8, "className": "text-center", "data": "property_image",
+        {
+          "targets": 8, "className": "text-center", "data": "property_image",
           "render": function (data, type, row, meta) {
-            if(!row.property_image)
-            { return "N/A"}
-            else{
-              return `<button id="imageBtn" type="button" data-bs-toggle="modal" data-bs-target="#imageModal" class="btn btn-light viewBtn">View</button>`;
+            if (!row.property_image) { return "N/A" }
+            else {
+              return `<button data-img=${row.property_image} type="button" data-bs-toggle="modal" data-bs-target="#imageModal" class="btn btn-light imageBtn">View</button>`;
             }
-           
+
           }
         },
-        { "targets": 9, "className": "text-center", "data": null,
+        {
+          "targets": 9, "className": "text-center", "data": null,
           "render": function (data, type, row, meta) {
             return `<button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${row.latitude}" data-lon="${row.longitude}"><i class="fas fa-map-marked-alt"></i></button>`;
           }
         },
-        { "targets": 10, "className": "text-center", "data": null,
+        {
+          "targets": 10, "className": "text-center", "data": null,
           "render": function (data, type, row, meta) {
             return `<button class="btn btn-light dropdown-toggle dropdownBtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>`;
           },
@@ -62,8 +67,7 @@ $(document).ready(function () {
       ],
       "pageLength": 5,
     });
-  
-
+   
 
     // let tableBody = "";
     // dataReceived.forEach((item) => {
@@ -92,6 +96,7 @@ $(document).ready(function () {
     // // Append the table body to the existing table
     // $("tbody").html(tableBody);
   }
+
 
   // Initialize the map
   var map = new ol.Map({
@@ -340,4 +345,30 @@ $(document).ready(function () {
       },
     });
   });
+  //view image
+  
+  $(document).on('click', '.imageBtn', function () {
+    // Get image filenames from data attribute (assuming it's a comma-separated list)
+    let filenames = $(this).data('img').split(',');
+
+    // Clear existing carousel items
+    $('#imageCarousel .carousel-inner').empty();
+
+    // Populate the carousel with images
+    filenames.forEach(function (filename, index) {
+        let imageElement = $('<div>').addClass('carousel-item' + (index === 0 ? ' active' : ''));
+        imageElement.append($('<img>').attr({
+            'src': 'images/' + filename.trim(),
+            'alt': 'Image ' + (index + 1),
+            'class': 'd-block w-100'
+        }));
+        $('#imageCarousel .carousel-inner').append(imageElement);
+    });
+
+    // Show the modal
+    $('#imageModal').modal('show');
+});
+
+
+
 });
