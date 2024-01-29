@@ -1,3 +1,4 @@
+let mytable;
 $(document).ready(function () {
   display();
   var vectorLayer
@@ -18,7 +19,7 @@ $(document).ready(function () {
   }
 
   function loadTable(dataReceived) {
-    let mytable = $('#myTable').DataTable({
+    mytable = $('#myTable').DataTable({
       
       data: dataReceived,      
       dom: '<"top" Bf>rt<"bottom" lp><"clear">',
@@ -67,35 +68,108 @@ $(document).ready(function () {
       ],
       "pageLength": 5,
     });
-   
+   }
+// chart
+  // Function to draw an ECharts pie chart based on property_type
+function drawEChartsPieChart(mytable) {
+  var counts = {};
 
-    // let tableBody = "";
-    // dataReceived.forEach((item) => {
-    //   tableBody += `<tr>
-    //                     <td>${item.survey_id}</td>
-    //                     <td>${item.ward_id}</td>
-    //                     <td>${item.property_type}</td>
-    //                     <td>${item.propert_address}</td>
-    //                     <td>${item.latitude}</td>
-    //                     <td>${item.longitude}</td>
+  // Count the number of entries for each property_type
+  mytable
+    .column(2, { search: 'applied' }) // Assuming property_type is the third column (index 2)
+    .data()
+    .each(function (val) {
+      if (counts[val]) {
+        counts[val] += 1;
+      } else {
+        counts[val] = 1;
+      }
+    });
 
-    //                     <td><button type="button" data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-light viewBtn" data-lat="${item.latitude}" data-lon="${item.longitude}"><i class="fas fa-map-marked-alt"></i></button></td>
-    //                     <td>
-    //                         <button class="btn btn-light dropdown-toggle dropdownBtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    //                             <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-    //                         </button>
-    //                         <ul class="dropdown-menu dropdown-menu-dark dropdown3">
-    //                             <!-- dynamic list -->
-    // <li><button class="dropdown-item btn btn-light edit" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.survey_id}">edit</button></li>
-    //                             <li><button class="dropdown-item btn btn-light delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="${item.survey_id}">delete</button></li>
-    //                         </ul>
-    //                     </td>
-    //                   </tr>`;
-    // });
+  // And map it to the format ECharts uses
+  var chartData = Object.keys(counts).map(function (key) {
+    return {
+      name: key,
+      value: counts[key]
+    };
+  });
 
-    // // Append the table body to the existing table
-    // $("tbody").html(tableBody);
-  }
+  // Create the ECharts pie chart
+  var chart = echarts.init(document.getElementById('demo-output'));
+  var option = {
+    title: {
+      text: 'Distribution of Property Types',
+      left: 'center'
+    },
+    series: [{
+      name: 'Property Types',
+      type: 'pie',
+      radius: '50%',
+      data: chartData,
+    }]
+  };
+  chart.setOption(option);
+}
+
+// On each draw, update the data in the chart
+
+  drawEChartsPieChart(mytable);
+
+  //bar chart
+  // Function to draw an ECharts bar chart based on ward id
+function drawEChartsBarChart(table) {
+  var counts = {};
+
+  // Count the number of entries for each ward_id
+  table
+    .column(1, { search: 'applied' }) // Assuming ward_id is the second column (index 1)
+    .data()
+    .each(function (val) {
+      if (counts[val]) {
+        counts[val] += 1;
+      } else {
+        counts[val] = 1;
+      }
+    });
+
+  // And map it to the format ECharts uses
+  var chartData = Object.keys(counts).map(function (key) {
+    return {
+      ward_id: key,
+      value: counts[key]
+    };
+  });
+
+  // Create the ECharts bar chart
+  var chart = echarts.init($("#bar-chart-output")[0]);
+  var option = {
+    title: {
+      text: 'Property Count by Ward ID',
+      left: 'center'
+    },
+    xAxis: {
+      type: 'category',
+      data: chartData.map(item => item.ward_id)
+    },
+    yAxis: {
+      type: 'value',
+      name: 'Number of Properties'
+    },
+    series: [{
+      name: 'Properties',
+      type: 'bar',
+      data: chartData.map(item => item.value)
+    }]
+  };
+  chart.setOption(option);
+}
+
+// Call the function after initializing the DataTable or after an update event
+
+  drawEChartsBarChart(mytable);
+
+
+
 
 
   // Initialize the map
@@ -157,13 +231,7 @@ $(document).ready(function () {
 
   });
 
-  // Search functionality
-  // $("#myInput").on("keyup", function () {
-  //   var value = $(this).val().toLowerCase();
-  //   $("#myTable tr").filter(function () {
-  //     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-  //   });
-  // });
+  
 
   // Fetch data for dropdown
   $.ajax({
