@@ -20,9 +20,9 @@ $(document).ready(function () {
 
   function loadTable(dataReceived) {
     mytable = $('#myTable').DataTable({
-      
-      data: dataReceived,      
-      dom: '<"top" Bf>rt<"bottom" lp><"clear">',
+
+      data: dataReceived,
+      dom: 'Bfrtp',
       buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
       columns: [
         { data: 'survey_id', title: 'Survey Id' },
@@ -41,7 +41,12 @@ $(document).ready(function () {
         { "targets": 4, "className": "text-center", "data": "latitude" },
         { "targets": 5, "className": "text-center", "data": "longitude" },
         { "targets": 6, "className": "text-center", "data": "total_floors" },
-        { "targets": 7, "className": "text-center", "data": "property_status" },
+        { "targets": 7, "className": "text-center", "data": "property_status",
+          "render":function(data, type, row, meta){
+            if(!row.property_status){return "N/A";}else{return row.property_status}
+          }
+          
+      },
         {
           "targets": 8, "className": "text-center", "data": "property_image",
           "render": function (data, type, row, meta) {
@@ -61,114 +66,164 @@ $(document).ready(function () {
         {
           "targets": 10, "className": "text-center", "data": null,
           "render": function (data, type, row, meta) {
-            return `<button class="btn btn-light dropdown-toggle dropdownBtn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>`;
+            return `<div class="btn-group">
+                  <button type="button" id="actionBtn" class="btn btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Actions
+                  </button>
+                  <div class="dropdown-menu">
+                    <a type="button" class="dropdown-item editBtn btn btn-light" data-bs-toggle="modal" data-bs-target="#editModal" href="#" data-id="${row.survey_id}">Edit</a>
+                    <a type="button" class="dropdown-item deleteBtn btn btn-light" data-bs-toggle="modal" data-bs-target="#deleteModal" href="#" data-id="${row.survey_id}">Delete</a>
+                  </div>
+                </div>`;
           },
           "orderable": false
         }
       ],
       "pageLength": 5,
     });
-   }
-// chart
+  }
+  // chart
   // Function to draw an ECharts pie chart based on property_type
-function drawEChartsPieChart(mytable) {
-  var counts = {};
-
-  // Count the number of entries for each property_type
-  mytable
-    .column(2, { search: 'applied' }) // Assuming property_type is the third column (index 2)
-    .data()
-    .each(function (val) {
-      if (counts[val]) {
-        counts[val] += 1;
-      } else {
-        counts[val] = 1;
-      }
+  function drawEChartsPieChart(mytable) {
+    var counts = {};
+  
+    // Count the number of entries for each property_type
+    mytable
+      .column(2, { search: 'applied' }) // Assuming property_type is the third column (index 2)
+      .data()
+      .each(function (val) {
+        if (counts[val]) {
+          counts[val] += 1;
+        } else {
+          counts[val] = 1;
+        }
+      });
+  
+    // And map it to the format ECharts uses
+    var chartData = Object.keys(counts).map(function (key) {
+      return {
+        name: key,
+        value: counts[key]
+      };
     });
-
-  // And map it to the format ECharts uses
-  var chartData = Object.keys(counts).map(function (key) {
-    return {
-      name: key,
-      value: counts[key]
+  
+    // Create the ECharts pie chart
+    var chart = echarts.init(document.getElementById('demo-output'));
+    var option = {
+      title: {
+        text: 'Distribution of Property Types',
+        left: 'center'
+      },
+      series: [{
+        name: 'Property Types',
+        type: 'pie',
+        radius: '50%',
+        data: chartData,
+      }]
     };
-  });
+    chart.setOption(option);
+  }
+  
+  // On each draw, update the data in the chart
+  
+    drawEChartsPieChart(mytable);
+  
 
-  // Create the ECharts pie chart
-  var chart = echarts.init(document.getElementById('demo-output'));
-  var option = {
-    title: {
-      text: 'Distribution of Property Types',
-      left: 'center'
-    },
-    series: [{
-      name: 'Property Types',
-      type: 'pie',
-      radius: '50%',
-      data: chartData,
-    }]
-  };
-  chart.setOption(option);
-}
-
-// On each draw, update the data in the chart
-
-  drawEChartsPieChart(mytable);
+ 
 
   //bar chart
   // Function to draw an ECharts bar chart based on ward id
-function drawEChartsBarChart(table) {
-  var counts = {};
+  function drawEChartsBarChart(table) {
+    var counts = {};
 
-  // Count the number of entries for each ward_id
-  table
-    .column(1, { search: 'applied' }) // Assuming ward_id is the second column (index 1)
-    .data()
-    .each(function (val) {
-      if (counts[val]) {
-        counts[val] += 1;
-      } else {
-        counts[val] = 1;
-      }
+    // Count the number of entries for each ward_id
+    table
+      .column(1, { search: 'applied' }) // Assuming ward_id is the second column (index 1)
+      .data()
+      .each(function (val) {
+        if (counts[val]) {
+          counts[val] += 1;
+        } else {
+          counts[val] = 1;
+        }
+      });
+
+    // And map it to the format ECharts uses
+    var chartData = Object.keys(counts).map(function (key) {
+      return {
+        ward_id: key,
+        value: counts[key]
+      };
     });
 
-  // And map it to the format ECharts uses
-  var chartData = Object.keys(counts).map(function (key) {
-    return {
-      ward_id: key,
-      value: counts[key]
+    // Create the ECharts bar chart
+    var chart = echarts.init(document.getElementById('bar-chart-output'));
+    var option = {
+      title: {
+        text: 'Property Count by Ward ID',
+        left: 'center'
+      },
+      xAxis: {
+        type: 'category',
+        data: chartData.map(item => item.ward_id)
+      },
+      yAxis: {
+        type: 'value',
+        name: 'Number of Properties'
+      },
+      series: [{
+        name: 'Properties',
+        type: 'bar',
+        data: chartData.map(item => item.value)
+      }]
     };
-  });
+    chart.setOption(option);
+  }
 
-  // Create the ECharts bar chart
-  var chart = echarts.init($("#bar-chart-output")[0]);
-  var option = {
-    title: {
-      text: 'Property Count by Ward ID',
-      left: 'center'
-    },
-    xAxis: {
-      type: 'category',
-      data: chartData.map(item => item.ward_id)
-    },
-    yAxis: {
-      type: 'value',
-      name: 'Number of Properties'
-    },
-    series: [{
-      name: 'Properties',
-      type: 'bar',
-      data: chartData.map(item => item.value)
-    }]
-  };
-  chart.setOption(option);
-}
-
-// Call the function after initializing the DataTable or after an update event
+  // Call the function after initializing the DataTable or after an update event
 
   drawEChartsBarChart(mytable);
 
+  // Function to draw an ECharts pie chart based on property_status
+  function drawEChartsPieChart(mytable) {
+    var counts = {};
 
+    // Count the number of entries for each property_type
+    mytable
+      .column(7, { search: 'applied' }) //  property_status is the 8column (index 7)
+      .data()
+      .each(function (val) {
+        if (counts[val]) {
+          counts[val] += 1;
+        } else {
+          counts[val] = 1;
+        }
+      });
+
+    // And map it to the format ECharts uses
+    var chartData = Object.keys(counts).map(function (key) {
+      return {
+        name: key,
+        value: counts[key]
+      };
+    });
+
+    // Create the ECharts pie chart
+    var chart = echarts.init(document.getElementById('pie-chart-property-type'));
+    var option = {
+      title: {
+        text: 'Distribution of Property status',
+        left: 'center'
+      },
+      series: [{
+        name: 'Property status',
+        type: 'pie',
+        radius: '50%',
+        data: chartData,
+      }]
+    };
+    chart.setOption(option);
+  }
 
 
 
@@ -184,12 +239,14 @@ function drawEChartsBarChart(table) {
     view: new ol.View({
       // Set initial map view (center and zoom level)
       center: ol.proj.fromLonLat([0, 0]), // Center of the map, in LonLat format
-      zoom: 10, // Initial zoom level
+      maxZoom: 15, // Initial zoom level
+      zoom:12
     }),
 
   });
+
   var vectorLayer = new ol.layer.Vector({
-    source: new ol.source.Vector(),
+    source: new ol.source.Vector()
   });
   map.addLayer(vectorLayer);
 
@@ -212,7 +269,11 @@ function drawEChartsBarChart(table) {
       }),
     }));
     vectorLayer.getSource().clear(); // Clear existing markers
+
+    
     vectorLayer.getSource().addFeature(marker); // Add the new marker
+    map.getView().fit(vectorLayer.getSource().getExtent());
+    
   }
 
   // Example: Add a marker at coordinates (longitude, latitude)
@@ -231,7 +292,7 @@ function drawEChartsBarChart(table) {
 
   });
 
-  
+
 
   // Fetch data for dropdown
   $.ajax({
@@ -280,17 +341,31 @@ function drawEChartsBarChart(table) {
       $(this).toggle($(this).find("td:nth-child(3)").text().includes(selected));
     });
   });
+ // Handle the click event of the action button
+$(document).on('click', '#actionBtn', function () {
+  // Find the dropdown menu within the current row
+  var dropdownMenu = $(this).closest('.btn-group').find('.dropdown-menu');
+  
+  // Toggle the dropdown menu visibility
+  dropdownMenu.toggleClass('show');
+  
+  // Close other dropdowns
+  $('.btn-group').not($(this).closest('.btn-group')).find('.dropdown-menu').removeClass('show');
+});
 
-  // Handle the click event of the three-dot menu
-  $(document).on('click', '.dropdownBtn', function () {
-    var dropdownMenu = $(this).next(".dropdown3");
-    dropdownMenu.toggleClass("show");
-  });
+// Close dropdown when clicking outside
+$(document).on('click', function (e) {
+  if (!$(e.target).closest('.btn-group').length) {
+    $('.btn-group .dropdown-menu').removeClass('show');
+  }
+});
+
+
 
   // Edit button using event delegation
   let surveyId = "";
-  $(document).on('click', '.edit', function () {
-    surveyId = $(this).data("id");
+  $(document).on('click', '.editBtn', function () {
+    surveyId = $(this).data("id"); 
     $.ajax({
       url: "http://localhost:8080/prop/" + surveyId,
       type: "GET",
@@ -391,7 +466,7 @@ function drawEChartsBarChart(table) {
 
   //delete button
   let delete_Id;
-  $(document).on('click', '.delete', function () {
+  $(document).on('click', '.deleteBtn', function () {
     delete_Id = $(this).data("id");
   });
   // Delete yes button
@@ -405,7 +480,7 @@ function drawEChartsBarChart(table) {
         $("#deleteModal").modal("hide");
         $('.modal-backdrop').hide();
         display();
-        alert("deleted");
+      
         delete_Id = '';
       },
       error: function (error) {
@@ -414,29 +489,26 @@ function drawEChartsBarChart(table) {
     });
   });
   //view image
-  
+
   $(document).on('click', '.imageBtn', function () {
     // Get image filenames from data attribute (assuming it's a comma-separated list)
     let filenames = $(this).data('img').split(',');
-
     // Clear existing carousel items
     $('#imageCarousel .carousel-inner').empty();
 
     // Populate the carousel with images
     filenames.forEach(function (filename, index) {
-        let imageElement = $('<div>').addClass('carousel-item' + (index === 0 ? ' active' : ''));
-        imageElement.append($('<img>').attr({
-            'src': 'images/' + filename.trim(),
-            'alt': 'Image ' + (index + 1),
-            'class': 'd-block w-100'
-        }));
-        $('#imageCarousel .carousel-inner').append(imageElement);
+      let imageElement = $('<div>').addClass('carousel-item' + (index === 0 ? ' active' : ''));
+      imageElement.append($('<img>').attr({
+        'src': 'images/' + filename.trim(),
+        'alt': 'Image ' + (index + 1),
+        'class': 'd-block w-100'
+      }));
+      $('#imageCarousel .carousel-inner').append(imageElement);
     });
 
     // Show the modal
     $('#imageModal').modal('show');
-});
-
-
+  })
 
 });
