@@ -148,6 +148,25 @@ $(document).ready(function () {
         var selected = $(this).text();
         console.log("Selected property status:", selected);
         // Implement your logic here
+        $.ajax({
+            url: "http://localhost:8080/prop_by_property_status/"+selected,
+            type: "GET",
+            async: false,
+            contentType: "application/json",
+            success: function (data) {
+                addMarkers(data);
+                // Show the map after adding markers
+                $("#map").css("display", "block");
+                // Handle close button click
+                $("#close").on("click", function () {
+                    $("#map").css("display", "none");
+                    map.removeLayer(vectorLayer);
+                });
+            },
+            error: function (error) {
+                console.log(error);
+            },
+        });
     });
 
     // Delegate click event to dynamically added dropdown items
