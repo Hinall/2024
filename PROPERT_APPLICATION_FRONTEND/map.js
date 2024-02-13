@@ -1,10 +1,10 @@
 alert("hello");
-
+let map;
 $(document).ready(function () {
     console.log('Document is ready!');
 
     // Initialize the map
-    var map = new ol.Map({
+     map = new ol.Map({
         target: "map2", // Ensure this matches your actual HTML element ID
         layers: [
             new ol.layer.Tile({
@@ -54,7 +54,8 @@ $(document).ready(function () {
         popover = new bootstrap.Popover(element, {
             placement: 'top',
             html: true,
-            content: `Survey ID: ${feature.get('surveyId')}<br>Ward ID: ${feature.get('wardId')}<br>Property Type: ${feature.get('propertyType')}<br>Property Address: ${feature.get('propertyAddress')}<br>Property Status: ${feature.get('propertyStatus')}<br>Latitude: ${feature.get('latitude')}<br>Longitude: ${feature.get('longitude')}`,
+            content: `Survey ID: ${feature.get('surveyId')}<br>Ward ID: ${feature.get('wardId')}<br>Property Type: ${feature.get('propertyType')}<br>Property Address: ${feature.get('propertyAddress')}<br>Property Status: ${feature.get('propertyStatus')}<br>Latitude: ${feature.get('latitude')}<br>Longitude: ${feature.get('longitude')}
+            <br>image:<a href="images/${feature.get('image')}" target="_blank">click to see image</a>`,
         });
         popover.show();
     });
@@ -85,6 +86,7 @@ $(document).ready(function () {
                 propertyStatus: item.property_status,
                 latitude: lat,
                 longitude: lon,
+                image: item.property_image
             });
 
             // Icon style
@@ -122,11 +124,11 @@ $(document).ready(function () {
         },
     });
 
-     // Fetch property status for dropdown
-     $.ajax({
+    // Fetch property status for dropdown
+    $.ajax({
         url: "http://localhost:8080/propstatusoption",
         type: "GET",
-        async:false,
+        async: false,
         contentType: "application/json",
         success: function (data) {
             console.log("Dropdown data:", data); // Log the data to see what is being returned
@@ -149,7 +151,7 @@ $(document).ready(function () {
         console.log("Selected property status:", selected);
         // Implement your logic here
         $.ajax({
-            url: "http://localhost:8080/prop_by_property_status/"+selected,
+            url: "http://localhost:8080/prop_by_property_status/" + selected,
             type: "GET",
             async: false,
             contentType: "application/json",
@@ -172,7 +174,40 @@ $(document).ready(function () {
     // Delegate click event to dynamically added dropdown items
     $(document).on('click', '.dropdown-item', function () {
         // Handle click event here
-        console.log($(this).text()); // Log the text of the clicked item for testing
+        console.log($(this).text());
     });
-    // handle search ward id
+    // Handle the click event of the search surveyid
+
+
+    $(document).on('keypress', '#myInput', function () {
+        var value = $(this).val();
+        $.ajax({
+            url: "http://localhost:8080/searchSurveyId/" + value,
+            type: "GET",
+            async: false,
+            contentType: "application/json",
+            success: function (data) {
+                addMarkers(data);
+                // Set the center of the map to the marker's coordinates
+// Set the center of the map to the marker's coordinates
+// map.getView().setCenter([parseFloat(data.longitude), parseFloat(data.latitude)]);
+
+map.getView().animate({
+    zoom: map.getView().getZoom() + 6,
+    duration: 400
+});
+                // Show the map after adding markers
+                $("#map").css("display", "block");
+                // Handle close button click
+                $("#close").on("click", function () {
+                    $("#map").css("display", "none");
+                    map.removeLayer(vectorLayer);
+                });
+            },
+            error: function (error) {
+                console.log(error);
+            },
+        });
+
+    });
 });
