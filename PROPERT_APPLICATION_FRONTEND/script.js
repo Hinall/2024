@@ -313,9 +313,24 @@ $(document).ready(function () {
   // Handle the change event of the first dropdown (ward_id)
   $(document).on('click', '#dropdown1 a', function () {
     var selectedOption = $(this).text();
-    $("#myTable tr").filter(function () {
-      $(this).toggle($(this).find("td:nth-child(2)").text().includes(selectedOption));
+    $.ajax({
+      url: "http://localhost:8080/wardIdOption",
+      type: "GET",
+      async: false,
+      success: function (data) {
+        var dropdownMenu = $("#dropdown1");
+        data.sort((a, b) => a.ward_id - b.ward_id);
+  
+        data.forEach((item) => {
+          // Use append to add each dropdown item
+          dropdownMenu.append(`<li><a class="dropdown-item" href="#">${item.ward_id}</a></li>`);
+        });
+      },
     });
+
+    // $("#myTable tr").filter(function () {
+    //   $(this).toggle($(this).find("td:nth-child(2)").text().includes(selectedOption));
+    // });
   });
 
   // Fetch property type for dropdown
